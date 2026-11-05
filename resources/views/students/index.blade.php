@@ -192,6 +192,12 @@
             font-weight: bold;
         }
 
+        .field-hint {
+            margin: 5px 0 0;
+            color: #64748b;
+            font-size: 0.875rem;
+        }
+
         .form-field input,
         .form-field select,
         .form-field textarea {
@@ -280,19 +286,19 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse ($students as $student)
+                        @forelse ($students as $row)
                             <tr>
-                                <td>{{ $student->nis }}</td>
-                                <td>{{ $student->nama ?? $student->name }}</td>
-                                <td>{{ $student->kelas ?? $student->class_name }}</td>
-                                <td>{{ $student->jenis_kelamin ?? $student->gender }}</td>
-                                <td>{{ $student->tanggal_lahir ?? $student->birth_date }}</td>
-                                <td>{{ $student->alamat ?? $student->address }}</td>
+                                <td>{{ $row->nis }}</td>
+                                <td>{{ $row->nama ?? $row->name }}</td>
+                                <td>{{ $row->kelas ?? $row->class_name }}</td>
+                                <td>{{ $row->jenis_kelamin ?? $row->gender }}</td>
+                                <td>{{ $row->tanggal_lahir ?? $row->birth_date }}</td>
+                                <td>{{ $row->alamat ?? $row->address }}</td>
                                 <td class="actions">
-                                    <a href="{{ route('students.edit', $student->id) }}"
+                                    <a href="{{ route('students.edit', $row->id) }}"
                                         class="btn btn-primary btn-small">Edit</a>
 
-                                    <form action="{{ route('students.destroy', $student->id) }}" method="POST"
+                                    <form action="{{ route('students.destroy', $row->id) }}" method="POST"
                                         class="inline-form">
                                         @csrf
                                         @method('DELETE')
@@ -347,6 +353,7 @@
                         <div class="form-field">
                             <label for="nis">NIS</label>
                             <input id="nis" name="nis" value="{{ old('nis', $student->nis ?? '') }}" maxlength="30" required>
+                            <p class="field-hint">NIS harus berbeda untuk setiap siswa.</p>
                             @error('nis')
                                 <p class="form-error">{{ $message }}</p>
                             @enderror

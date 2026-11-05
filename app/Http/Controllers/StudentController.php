@@ -31,17 +31,20 @@ class StudentController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'nis' => 'required|unique:students|max:30',
+            'nis' => 'required|string|max:30|unique:students,nis',
             'name' => 'required|string|max:255',
             'class_name' => 'required|string|max:255',
             'gender' => 'required|string|max:20',
             'birth_date' => 'nullable|date',
             'address' => 'nullable|string',
+        ], [
+            'nis.required' => 'NIS wajib diisi.',
+            'nis.unique' => 'NIS tersebut sudah digunakan. Setiap siswa harus memiliki NIS yang berbeda.',
         ]);
 
         Student::create($validatedData);
 
-        return redirect()->route('students.index')->with('success', 'Student created successfully.');
+        return redirect()->route('students.index')->with('success', 'Data siswa berhasil ditambahkan.');
     }
 
     public function edit($id)
@@ -66,11 +69,14 @@ class StudentController extends Controller
             'gender' => 'required|string|max:20',
             'birth_date' => 'nullable|date',
             'address' => 'nullable|string',
+        ], [
+            'nis.required' => 'NIS wajib diisi.',
+            'nis.unique' => 'NIS tersebut sudah digunakan oleh siswa lain.',
         ]);
 
         $student->update($validatedData);
 
-        return redirect()->route('students.index')->with('success', 'Student updated successfully.');
+        return redirect()->route('students.index')->with('success', 'Data siswa berhasil diperbarui.');
     }
 
     public function destroy($id)
@@ -78,6 +84,6 @@ class StudentController extends Controller
         $student = Student::findOrFail($id);
         $student->delete();
 
-        return redirect()->route('students.index')->with('success', 'Student deleted successfully.');
+        return redirect()->route('students.index')->with('success', 'Data siswa berhasil dihapus.');
     }
 }

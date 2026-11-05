@@ -115,7 +115,7 @@
 
         .button-secondary {
             background: #e2e8f0;
-            color: #1e293b;
+            color: #fcfdff;
         }
 
         .button-secondary:hover {
