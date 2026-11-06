@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Data Siswa</title>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <style>
         * {
@@ -266,6 +267,11 @@
                 </div>
             @endif
 
+            <form action="{{ route('logout') }}" method="POST" class="inline-form">
+                @csrf
+                <button type="submit" class="btn btn-secondary">Logout</button>
+            </form>
+
             <a class="btn btn-primary" href="{{ route('students.create') }}">
                 + Tambah Siswa
             </a>
@@ -294,18 +300,21 @@
                                 <td>{{ $row->jenis_kelamin ?? $row->gender }}</td>
                                 <td>{{ $row->tanggal_lahir ?? $row->birth_date }}</td>
                                 <td>{{ $row->alamat ?? $row->address }}</td>
+                    
                                 <td class="actions">
                                     <a href="{{ route('students.edit', $row->id) }}"
                                         class="btn btn-primary btn-small">Edit</a>
 
-                                    <form action="{{ route('students.destroy', $row->id) }}" method="POST"
-                                        class="inline-form">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit"
-                                            onclick="return confirm('Apakah Anda yakin ingin menghapus siswa ini?')"
-                                            class="btn btn-delete btn-small">Hapus</button>
-                                    </form>
+                                    @if (auth()->user()->role === 'admin')
+                                        <form action="{{ route('students.destroy', $row->id) }}" method="POST"
+                                            class="inline-form">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                onclick="return confirm('Apakah Anda yakin ingin menghapus siswa ini?')"
+                                                class="btn btn-delete btn-small">Hapus</button>
+                                        </form>
+                                    @endif
                                 </td>
                             </tr>
                         @empty
@@ -323,98 +332,104 @@
                 <section class="modal" role="dialog" aria-modal="true" aria-labelledby="student-modal-title">
                     <div class="modal-header">
                         <div>
-                            <h2 id="student-modal-title">{{ $student ? 'Edit Siswa' : 'Tambah Siswa' }}</h2>
-                            <p class="subtitle">Isi informasi siswa pada formulir berikut.</p>
+                            <span
+                                class="mb-3 inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-sm font-semibold text-blue-700">
+                                <span class="h-2 w-2 rounded-full bg-blue-600"></span>
+                                Data Siswa
+                            </span>
+
+                            <h2 id="student-modal-title" class="text-2xl font-bold tracking-tight text-slate-900">
+                                {{ $student ? 'Edit Siswa' : 'Tambah Siswa' }}
+                            </h2>
+
+                            <p class="mt-2 text-sm text-slate-500">Isi informasi siswa pada formulir berikut.</p>
                         </div>
-                        <a class="modal-close" href="{{ route('students.index') }}" aria-label="Tutup">&times;</a>
-                    </div>
 
-                    @if ($errors->any())
-                        <div class="alert-success" style="background: #fef2f2; color: #b91c1c; border-color: #fecaca;">
-                            <strong>Periksa kembali data yang diisi:</strong>
-                            <ul>
-                                @foreach ($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
-
-                    <form
-                        action="{{ $student ? route('students.update', $student->id) : route('students.store') }}"
-                        method="POST"
-                    >
-                        @csrf
-
-                        @if ($student)
-                            @method('PUT')
+                        @if ($errors->any())
+                            <div class="alert-success"
+                                style="background: #fef2f2; color: #b91c1c; border-color: #fecaca;">
+                                <strong>Periksa kembali data yang diisi:</strong>
+                                <ul>
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
                         @endif
 
-                        <div class="form-field">
-                            <label for="nis">NIS</label>
-                            <input id="nis" name="nis" value="{{ old('nis', $student->nis ?? '') }}" maxlength="30" required>
-                            <p class="field-hint">NIS harus berbeda untuk setiap siswa.</p>
-                            @error('nis')
-                                <p class="form-error">{{ $message }}</p>
-                            @enderror
-                        </div>
+                        <form
+                            action="{{ $student ? route('students.update', $student->id) : route('students.store') }}"
+                            method="POST">
+                            @csrf
 
-                        <div class="form-field">
-                            <label for="name">Nama siswa</label>
-                            <input id="name" name="name" value="{{ old('name', $student->name ?? '') }}" required>
-                            @error('name')
-                                <p class="form-error">{{ $message }}</p>
-                            @enderror
-                        </div>
+                            @if ($student)
+                                @method('PUT')
+                            @endif
 
-                        <div class="form-field">
-                            <label for="class_name">Kelas</label>
-                            <input id="class_name" name="class_name" value="{{ old('class_name', $student->class_name ?? '') }}" required>
-                            @error('class_name')
-                                <p class="form-error">{{ $message }}</p>
-                            @enderror
-                        </div>
+                            <div class="form-field">
+                                <label for="nis">NIS</label>
+                                <input id="nis" name="nis" value="{{ old('nis', $student->nis ?? '') }}"
+                                    maxlength="30" required>
+                                <p class="field-hint">NIS harus berbeda untuk setiap siswa.</p>
+                                @error('nis')
+                                    <p class="form-error">{{ $message }}</p>
+                                @enderror
+                            </div>
 
-                        <div class="form-field">
-                            <label for="gender">Jenis kelamin</label>
-                            <select id="gender" name="gender" required>
-                                <option value="">Pilih jenis kelamin</option>
-                                <option value="Laki-laki" @selected(old('gender', $student->gender ?? '') === 'Laki-laki')>Laki-laki</option>
-                                <option value="Perempuan" @selected(old('gender', $student->gender ?? '') === 'Perempuan')>Perempuan</option>
-                            </select>
-                            @error('gender')
-                                <p class="form-error">{{ $message }}</p>
-                            @enderror
-                        </div>
+                            <div class="form-field">
+                                <label for="name">Nama siswa</label>
+                                <input id="name" name="name" value="{{ old('name', $student->name ?? '') }}"
+                                    required>
+                                @error('name')
+                                    <p class="form-error">{{ $message }}</p>
+                                @enderror
+                            </div>
 
-                        <div class="form-field">
-                            <label for="birth_date">Tanggal lahir</label>
-                            <input
-                                type="date"
-                                id="birth_date"
-                                name="birth_date"
-                                value="{{ old('birth_date', $student && $student->birth_date ? $student->birth_date->format('Y-m-d') : '') }}"
-                            >
-                            @error('birth_date')
-                                <p class="form-error">{{ $message }}</p>
-                            @enderror
-                        </div>
+                            <div class="form-field">
+                                <label for="class_name">Kelas</label>
+                                <input id="class_name" name="class_name"
+                                    value="{{ old('class_name', $student->class_name ?? '') }}" required>
+                                @error('class_name')
+                                    <p class="form-error">{{ $message }}</p>
+                                @enderror
+                            </div>
 
-                        <div class="form-field">
-                            <label for="address">Alamat</label>
-                            <textarea id="address" name="address">{{ old('address', $student->address ?? '') }}</textarea>
-                            @error('address')
-                                <p class="form-error">{{ $message }}</p>
-                            @enderror
-                        </div>
+                            <div class="form-field">
+                                <label for="gender">Jenis kelamin</label>
+                                <select id="gender" name="gender" required>
+                                    <option value="">Pilih jenis kelamin</option>
+                                    <option value="Laki-laki" @selected(old('gender', $student->gender ?? '') === 'Laki-laki')>Laki-laki</option>
+                                    <option value="Perempuan" @selected(old('gender', $student->gender ?? '') === 'Perempuan')>Perempuan</option>
+                                </select>
+                                @error('gender')
+                                    <p class="form-error">{{ $message }}</p>
+                                @enderror
+                            </div>
 
-                        <div class="modal-actions">
-                            <a class="btn btn-secondary" href="{{ route('students.index') }}">Batal</a>
-                            <button class="btn btn-primary" type="submit">
-                                {{ $student ? 'Simpan Perubahan' : 'Simpan Siswa' }}
-                            </button>
-                        </div>
-                    </form>
+                            <div class="form-field">
+                                <label for="birth_date">Tanggal lahir</label>
+                                <input type="date" id="birth_date" name="birth_date"
+                                    value="{{ old('birth_date', $student && $student->birth_date ? $student->birth_date->format('Y-m-d') : '') }}">
+                                @error('birth_date')
+                                    <p class="form-error">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div class="form-field">
+                                <label for="address">Alamat</label>
+                                <textarea id="address" name="address">{{ old('address', $student->address ?? '') }}</textarea>
+                                @error('address')
+                                    <p class="form-error">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div class="modal-actions">
+                                <a class="btn btn-secondary" href="{{ route('students.index') }}">Batal</a>
+                                <button class="btn btn-primary" type="submit">
+                                    {{ $student ? 'Simpan Perubahan' : 'Simpan Siswa' }}
+                                </button>
+                            </div>
+                        </form>
                 </section>
             </div>
         @endif
